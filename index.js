@@ -53,7 +53,14 @@ app.post("/refer", async (req, res) => {
 
 
 
-
+app.get("/test-db", async (req, res) => {
+    try {
+        const referrals = await prisma.referral.findMany();
+        res.json({ success: true, data: referrals });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 
 

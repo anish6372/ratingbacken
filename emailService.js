@@ -11,21 +11,32 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-
 export const sendReferralEmail = async (referrerEmail, refereeEmail) => {
     try {
+        if (!referrerEmail || !refereeEmail) {
+            console.error("❌ Error: Missing email addresses.");
+            return;
+        }
+
         console.log("📧 Sending email to:", refereeEmail);
 
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: `"Referral Program" <${process.env.EMAIL_USER}>`,
             to: refereeEmail,
-            subject: "You've Been Referred!",
-            text: `Hello, You have been referred by ${referrerEmail}. Join now and earn exciting rewards!`,
+            subject: "You've Been Referred! 🎉",
+            html: `
+                <p>Hello,</p>
+                <p>You have been referred by <strong>${referrerEmail}</strong>.</p>
+                <p>Join now and earn exciting rewards! 🎁</p>
+                <p>Click <a href="https://yourwebsite.com">here</a> to get started.</p>
+                <br>
+                <p>Best regards,<br>Your Company Team</p>
+            `,
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log(" Email sent successfully:", info.response);
+        console.log("✅ Email sent successfully:", info.response);
     } catch (error) {
-        console.error(" Error sending referral email:", error);
+        console.error("❌ Error sending referral email:", error.message);
     }
 };

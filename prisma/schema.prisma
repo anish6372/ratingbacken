@@ -13,10 +13,10 @@ model User {
   email     String   @unique
   address   String
   password  String
-  role      String   @default("USER") // Default role is USER
+  role      String   @default("USER") 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  ratings   Rating[] // Relation to Rating model
+  ratings   Rating[] 
 }
 
 model Admin {
@@ -31,7 +31,7 @@ model Admin {
 model Store {
   id        Int      @id @default(autoincrement())
   name      String
-  email     String   @unique // Ensure the email field is defined and unique
+  email     String   @unique 
   address   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -42,7 +42,7 @@ model Rating {
   id        Int      @id @default(autoincrement())
   userId    Int
   storeId   Int
-  rating    Int      // Rating value (e.g., 1-5)
+  rating    Int     
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

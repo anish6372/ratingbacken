@@ -3,77 +3,51 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 import prisma from "./prismaClient.js";
-import { sendReferralEmail } from "./emailService.js";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+import storeRoutes from "./routes/storeRoutes.js";
+import ratingRoutes from "./routes/ratingRoutes.js";
+import { protect, adminOnly, storeOwnerOnly } from "./middleware/authMiddleware.js"; // Add middleware
 
-dotenv.config(); // Ensure environment variables are loaded early
+dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:5173", // Allow requests from localhost:5173
+    methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
+    credentials: true // Allow cookies and credentials
+}));
 app.use(bodyParser.json());
 
-// Utility function to validate email format
-const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", protect, adminOnly, adminRoutes); // Protect admin routes
+app.use("/api/stores", protect, storeOwnerOnly, storeRoutes); // Protect store owner routes
+app.use("/api/ratings", protect, ratingRoutes); // Protect ratings routes
 
-// Test database connection on startup
+// Health Check Endpoint
+app.get("/health", (req, res) => {
+    res.status(200).json({ message: "Server is running!" });
+});
+
+// Test Database Connection
 async function testDBConnection() {
     try {
         await prisma.$connect();
         console.log("✅ Successfully connected to MySQL database!");
     } catch (error) {
         console.error("❌ Database connection failed:", error);
-        process.exit(1); // Exit the process if DB connection fails
+        process.exit(1);
     }
 }
 testDBConnection();
 
-// Route: Referral Submission
-app.post("/refer", async (req, res) => {
-    const { referrerName, referrerEmail, refereeName, refereeEmail } = req.body;
-
-    if (!referrerName || !referrerEmail || !refereeName || !refereeEmail) {
-        return res.status(400).json({ error: "All fields are required" });
-    }
-
-    if (!isValidEmail(referrerEmail) || !isValidEmail(refereeEmail)) {
-        return res.status(400).json({ error: "Invalid email format" });
-    }
-
-    try {
-        // Store referral in the database
-        const referral = await prisma.referral.create({
-            data: { referrerName, referrerEmail, refereeName, refereeEmail },
-        });
-
-        console.log("✅ Referral saved, sending email...");
-
-        // Send referral email
-        await sendReferralEmail(referrerEmail, refereeEmail);
-        console.log("📧 Email successfully sent to:", refereeEmail);
-
-        res.status(201).json({
-            message: "Referral submitted successfully",
-            referral,
-        });
-    } catch (error) {
-        console.error("❌ Error saving referral:", error);
-        res.status(500).json({
-            error: "Error saving referral",
-            details: error.message,
-        });
-    }
+// Global Error Handler
+app.use((err, req, res, next) => {
+    console.error("❌ Error:", err.message);
+    res.status(500).json({ success: false, error: err.message });
 });
 
-// Route: Test database connectivity & fetch all referrals
-app.get("/test-db", async (req, res) => {
-    try {
-        const referrals = await prisma.referral.findMany();
-        res.json({ success: true, data: referrals });
-    } catch (error) {
-        console.error("❌ Error fetching referrals:", error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Start the server
+// Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -60,26 +60,26 @@ export const register = async (req, res) => {
   }
 };
 
-// User Login
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
+    
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    // Compare the password
+    
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    // Generate JWT token
+  
     const token = jwt.sign(
-      { id: user.id, role: user.role }, // Include role in the token payload
+      { id: user.id, role: user.role }, 
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -91,35 +91,34 @@ export const login = async (req, res) => {
   }
 };
 
-// Update Password (for logged-in users)
+
 export const updatePassword = async (req, res) => {
   try {
-    const userId = req.user.id; // Get user ID from middleware (Authenticated user)
+    const userId = req.user.id; 
     const { oldPassword, newPassword } = req.body;
 
-    // Find the user in the database
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
 
-    // Validate old password
+  
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Old password is incorrect." });
     }
 
-    // Validate new password format
+   
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({ message: "Password must be 8-16 chars, with 1 uppercase & 1 special char." });
     }
 
-    // Hash new password
+   
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update the password in the database
+    
     await prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },

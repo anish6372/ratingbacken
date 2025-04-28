@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 export const createStore = async (req, res) => {
   const { name, email, address } = req.body;
   try {
-    // Ensure all required fields are provided
+    
     if (!name || !email || !address) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Check if a store with the same email already exists
+    
     const existingStore = await prisma.store.findUnique({
       where: { email },
     });
@@ -20,7 +20,7 @@ export const createStore = async (req, res) => {
       return res.status(400).json({ message: "A store with this email already exists." });
     }
 
-    // Create the store
+  
     const store = await prisma.store.create({
       data: { name, email, address },
     });
@@ -86,7 +86,7 @@ export const getAllStores = async (req, res) => {
       name: store.name,
       address: store.address,
       overallRating: store.averageRating,
-      userSubmittedRating: store.ratings.length > 0 ? store.ratings[0].rating : null  // Show user's rating, if any
+      userSubmittedRating: store.ratings.length > 0 ? store.ratings[0].rating : null  
     }));
 
     res.status(200).json(formattedStores); 

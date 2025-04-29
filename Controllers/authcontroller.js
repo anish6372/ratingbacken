@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import prisma from "../prismaClient.js"; // Use the imported prisma client
+import prisma from "../prismaClient.js"; 
 
-// Helper to generate JWT
+
 const generateToken = (user) => {
   return jwt.sign(
     { id: user.id, role: user.role },
@@ -11,12 +11,11 @@ const generateToken = (user) => {
   );
 };
 
-// User Registration (Normal User)
+
 export const register = async (req, res) => {
   try {
-    const { name, email, address, password, role } = req.body; // Ensure role is destructured
+    const { name, email, address, password, role } = req.body;
 
-    // Validate inputs
     if (!name || name.length < 20 || name.length > 60) {
       return res.status(400).json({ message: "Name must be between 20 and 60 characters." });
     }
@@ -30,27 +29,27 @@ export const register = async (req, res) => {
       });
     }
 
-    // Check if email already exists
+    
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists." });
     }
 
-    // Hash password
+   
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+  
     const user = await prisma.user.create({
       data: {
         name,
         email,
         address,
         password: hashedPassword,
-        role: role || "USER", // Ensure role is saved correctly
+        role: role || "USER", 
       },
     });
 
-    // Generate JWT token
+   
     const token = generateToken(user);
 
     res.status(201).json({ token, user });

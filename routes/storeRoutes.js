@@ -1,11 +1,10 @@
 import express from "express";
-import { createStore, getAllStores } from "../Controllers/storecontroller.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { listStores } from "../Controllers/storecontroller.js";
+import { protect, allowUserAndStoreOwner } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post('/stores', createStore);
-
-router.get("/", protect, getAllStores);
+// List all stores (accessible to normal users and store owners)
+router.get("/", protect, allowUserAndStoreOwner, listStores);
 
 export default router;

@@ -1,8 +1,7 @@
 import { PrismaClient } from "@prisma/client"; 
-const prisma = new PrismaClient();  
 
 
-
+import prisma from "../prismaClient.js";
 
 export const createStore = async (req, res) => {
   const { name, email, address } = req.body;
@@ -93,5 +92,31 @@ export const getAllStores = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error." });
+  }
+};
+
+export const listStores = async (req, res) => {
+  try {
+    const { name, address } = req.query;
+
+    // Fetch all stores with optional filters
+    const stores = await prisma.store.findMany({
+      where: {
+        name: { contains: name || "", mode: "insensitive" },
+        address: { contains: address || "", mode: "insensitive" },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        address: true,
+        averageRating: true,
+      },
+    });
+
+    res.status(200).json(stores);
+  } catch (error) {
+    console.error("Error fetching stores:", error);
+    res.status(500).json({ message: "Server error while fetching stores." });
   }
 };

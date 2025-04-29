@@ -5,6 +5,6 @@ import { protect, allowUserAndStoreOwner } from "../middleware/authMiddleware.js
 const router = express.Router();
 
 
-router.get("/", protect, allowUserAndStoreOwner, listStores);
+router.get("/store", protect, allowUserAndStoreOwner, listStores);
 
 export default router;

@@ -3,12 +3,10 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-
 export const addUser = async (req, res) => {
   try {
     const { name, email, address, password, role } = req.body;
 
-  
     if (!["USER", "ADMIN", "OWNER"].includes(role)) {
       return res.status(400).json({ message: "Invalid role." });
     }
@@ -47,27 +45,23 @@ export const addUser = async (req, res) => {
   }
 };
 
-
 export const addStore = async (req, res) => {
   try {
-    const { name, email, address } = req.body; 
+    const { name, email, address } = req.body;
 
-   
     if (!name || !email || !address) {
       return res.status(400).json({ message: "Missing required fields (name, email, address)." });
     }
 
-   
     const existingStore = await prisma.store.findUnique({
-      where: { email }, 
+      where: { email },
     });
     if (existingStore) {
       return res.status(400).json({ message: "A store with this email already exists." });
     }
 
-    
     const newStore = await prisma.store.create({
-      data: { name, email, address }, 
+      data: { name, email, address },
     });
 
     res.status(201).json({ message: "Store created successfully.", store: newStore });
@@ -76,7 +70,6 @@ export const addStore = async (req, res) => {
     res.status(500).json({ message: "Server error while adding store." });
   }
 };
-
 
 export const dashboard = async (req, res) => {
   try {
@@ -90,7 +83,6 @@ export const dashboard = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
-
 
 export const listUsers = async (req, res) => {
   try {
@@ -119,47 +111,31 @@ export const listUsers = async (req, res) => {
   }
 };
 
-
 export const listStores = async (req, res) => {
   try {
-    const { name, email,address } = req.query;  
-    const userId = req.user.id;  
+    const { name, address } = req.query;
 
-    
+    // Fetch all stores with optional filters
     const stores = await prisma.store.findMany({
       where: {
-        name: { contains: name || "", mode: "insensitive" },  
-        address: { contains: address || "", mode: "insensitive" }  
+        name: { contains: name || "", mode: "insensitive" },
+        address: { contains: address || "", mode: "insensitive" },
       },
       select: {
         id: true,
         name: true,
-        email:true,
+        email: true,
         address: true,
         averageRating: true,
-        ratings: {
-          where: { userId: userId },  
-          select: { rating: true }
-        }
-      }
+      },
     });
 
-   
-    const formattedStores = stores.map(store => ({
-      id: store.id,
-      name: store.name,
-      address: store.address,
-      overallRating: store.averageRating,  
-      userSubmittedRating: store.ratings.length > 0 ? store.ratings[0].rating : null  
-    }));
-
-    res.status(200).json(formattedStores);  
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error." });
+    res.status(200).json(stores);
+  } catch (error) {
+    console.error("Error fetching stores:", error);
+    res.status(500).json({ message: "Server error while fetching stores." });
   }
 };
-
 
 export const listAllUsers = async (req, res) => {
   try {
@@ -186,8 +162,6 @@ export const listAllUsers = async (req, res) => {
   }
 };
 
-
 export const logout = (req, res) => {
- 
   res.status(200).json({ message: "Admin logged out successfully." });
 };

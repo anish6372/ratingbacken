@@ -55,7 +55,7 @@ export const storeOwnerOnly = (req, res, next) => {
 
 export const storeOwnerOrUser = (req, res, next) => {
   if (req.user.role === "STORE_OWNER" || req.user.role === "USER") {
-    return next(); // Allow access for store owners and normal users
+    return next(); 
   }
   res.status(403).json({ message: "Access denied, store owner or user only" });
 };
@@ -71,8 +71,8 @@ export const authorizeRoles = (...roles) => {
 };
 
 export const allowUserAndStoreOwner = (req, res, next) => {
-  if (req.user.role === "USER" || req.user.role === "STORE_OWNER") {
-    return next(); // Allow access for normal users and store owners
+  if (req.user?.role === "USER" || req.user?.role === "STORE_OWNER" || req.user?.role === "ADMIN") {
+    return next(); // Allow access for users, store owners, and admins
   }
   res.status(403).json({ message: "Access denied, user or store owner only" });
 };
